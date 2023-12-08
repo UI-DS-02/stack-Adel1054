@@ -55,6 +55,9 @@ public class Main {
             case '*':
                 return a * b;
             case '/':
+                if(b==0){
+                    return -100000000;
+                }
                 return a / b;
             case '^':
                 return Math.pow(a, b);
@@ -69,8 +72,11 @@ public class Main {
         return factorial(n - 1) * n;
     }
     public static boolean isValid(String input){
+        if(input.startsWith(")")||input.endsWith("(")){
+            return false;
+        }
         Pattern pattern=Pattern.compile(".*[\\^*/]{2,}.*|.*[+\\-*/^]$|.*[^0-9()+\\-*/^!].*");
-        return !pattern.matcher(input).matches()&&(!input.startsWith(")")||!input.endsWith("("));
+        return !pattern.matcher(input).matches();
     }
     public static double getAnswer(String input) {
         int size = input.length();
@@ -79,8 +85,6 @@ public class Main {
         Stack<Double> operands = new Stack<>(size);
         int openedCount=0;
         int closedCount=0;
-        boolean opened=false;
-        boolean closed=false;
         boolean numCameBefore=false;
         for (int i=0;i<size;i++) {
             char c=input.charAt(i);
@@ -99,6 +103,7 @@ public class Main {
                 numCameBefore=false;
             } else if (c == ')') {
                 numCameBefore=false;
+                closedCount++;
                 if(operands.size()<2){
                     return -100000000;
                 }
@@ -106,15 +111,27 @@ public class Main {
                 double operand2 = operands.pop();
                 double operand1 = operands.pop();
                 double result = operate(operator, operand1, operand2);
+                if(result==-100000000){
+                    return result;
+                }
                 operands.push(result);
             } else if (c == '!') {
                 numCameBefore=false;
                 double operand = operands.pop();
+                if(operand>16){
+                    return -100000000;
+                }
                 operands.push((double) factorial((int) operand));
             }
         }
-
-        return operands.pop();
+        if(openedCount!=closedCount){
+            return -100000000;
+        }
+        if(input.charAt(0)=='-'){
+            return -operands.pop();
+        }else {
+            return operands.pop();
+        }
     }
 
     public static void main(String[] args) {
