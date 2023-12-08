@@ -79,6 +79,9 @@ public class Main {
         return !pattern.matcher(input).matches();
     }
     public static double getAnswer(String input) {
+        if(!isValid(input)){
+            return -100000000;
+        }
         int size = input.length();
         char[] charArray = input.toCharArray();
         Stack<Character> operators = new Stack<>(size);
