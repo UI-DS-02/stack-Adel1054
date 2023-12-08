@@ -1,3 +1,6 @@
+import java.util.Scanner;
+import java.util.regex.Pattern;
+
 public class Main {
     private static class Stack<T> {
         private final int maxSize;
@@ -38,9 +41,12 @@ public class Main {
         public boolean isFull() {
             return top == maxSize - 1;
         }
+        public int size(){
+            return top+1;
+        }
     }
 
-    public static double apply(char operator, double a, double b) {
+    public static double operate(char operator, double a, double b) {
         switch (operator) {
             case '+':
                 return a + b;
@@ -50,8 +56,6 @@ public class Main {
                 return a * b;
             case '/':
                 return a / b;
-            case '!':
-                return factorial((int) a);
             case '^':
                 return Math.pow(a, b);
         }
@@ -64,8 +68,60 @@ public class Main {
         }
         return factorial(n - 1) * n;
     }
+    public static boolean isValid(String input){
+        Pattern pattern=Pattern.compile(".*[\\^*/]{2,}.*|.*[+\\-*/^]$|.*[^0-9()+\\-*/^!].*");
+        return !pattern.matcher(input).matches()&&(!input.startsWith(")")||!input.endsWith("("));
+    }
+    public static double getAnswer(String input) {
+        int size = input.length();
+        char[] charArray = input.toCharArray();
+        Stack<Character> operators = new Stack<>(size);
+        Stack<Double> operands = new Stack<>(size);
+        int openedCount=0;
+        int closedCount=0;
+        boolean opened=false;
+        boolean closed=false;
+        boolean numCameBefore=false;
+        for (int i=0;i<size;i++) {
+            char c=input.charAt(i);
+            if (c == '(') {
+                openedCount++;
+                numCameBefore=false;
+            } else if (Character.isDigit(c)) {
+                double num=(double) c - '0';
+                if(numCameBefore){
+                    num=operands.pop()*10+num;
+                }
+                operands.push(num);
+                numCameBefore=true;
+            } else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '^') {
+                operators.push(c);
+                numCameBefore=false;
+            } else if (c == ')') {
+                numCameBefore=false;
+                if(operands.size()<2){
+                    return -100000000;
+                }
+                char operator = operators.pop();
+                double operand2 = operands.pop();
+                double operand1 = operands.pop();
+                double result = operate(operator, operand1, operand2);
+                operands.push(result);
+            } else if (c == '!') {
+                numCameBefore=false;
+                double operand = operands.pop();
+                operands.push((double) factorial((int) operand));
+            }
+        }
+
+        return operands.pop();
+    }
 
     public static void main(String[] args) {
-        System.out.println(apply('.', 5, 4));
+        Scanner input=new Scanner(System.in);
+        double answer=getAnswer(input.nextLine());
+        if(answer!=-100000000){
+            System.out.println(answer);
+        }
     }
 }
